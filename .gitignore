@@ -1,0 +1,77 @@
+# =========================
+# Terraform
+# =========================
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# Ignore Terraform plan files
+*.tfplan
+
+# =========================
+# AWS / Credentials
+# =========================
+*.pem
+*.key
+*.env
+.env.*
+aws-credentials.json
+
+# =========================
+# Java / Spring Boot
+# =========================
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# =========================
+# IDEs
+# =========================
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Node (if using frontend / React)
+# =========================
+node_modules/
+dist/
+build/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# Misc
+# =========================
+*.tmp
+*.swp
+*.bak
