@@ -25,3 +25,7 @@ output "s3_bucket_name" {
 output "s3_bucket_arn" {
   value = module.s3.bucket_arn
 }
+
+output "rds_endpoint" {
+  value = module.rds.db_instance_endpoint
+}

@@ -45,3 +45,9 @@ variable "instance_type" {
   type        = string
   default     = "c7i-flex.large"
 }
+
+variable "db_password" {
+  description = "The password for the RDS database"
+  type        = string
+  sensitive   = true
+}
