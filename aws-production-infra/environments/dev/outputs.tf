@@ -17,3 +17,11 @@ output "alb_dns_name" {
 output "asg_name" {
   value = module.autoscaling.asg_name
 }
+
+output "s3_bucket_name" {
+  value = module.s3.bucket_id
+}
+
+output "s3_bucket_arn" {
+  value = module.s3.bucket_arn
+}

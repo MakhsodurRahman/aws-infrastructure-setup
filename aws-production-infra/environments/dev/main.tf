@@ -64,6 +64,14 @@ module "autoscaling" {
   instance_type        = var.instance_type
   min_size             = 1
   max_size             = 3
-  desired_capacity     = 2
+  desired_capacity     = 1
   common_tags          = local.common_tags
+}
+
+module "s3" {
+  source = "../../modules/s3"
+
+  project_name = var.project_name
+  environment  = var.environment
+  common_tags  = local.common_tags
 }
