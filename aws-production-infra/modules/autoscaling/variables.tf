@@ -62,3 +62,9 @@ variable "common_tags" {
   description = "Common tags"
   type        = map(string)
 }
+
+variable "docker_install_script" {
+  description = "The script to install Docker"
+  type        = string
+  default     = ""
+}

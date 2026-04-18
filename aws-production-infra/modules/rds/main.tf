@@ -44,28 +44,28 @@ resource "aws_security_group" "rds_sg" {
 
 resource "aws_db_instance" "this" {
   identifier = "${var.project_name}-${var.environment}-db"
-  
+
   engine            = "postgres"
   engine_version    = "15" # Using latest major version for production
   instance_class    = var.instance_class
   allocated_storage = var.allocated_storage
   storage_type      = "gp3"
-  
+
   db_name  = var.db_name
   username = var.db_username
   password = var.db_password
-  
+
   db_subnet_group_name   = aws_db_subnet_group.this.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  
-  publicly_accessible = true # Enabled for testing as requested
+
+  publicly_accessible = true  # Enabled for testing as requested
   multi_az            = false # Single-AZ for Free Tier
   skip_final_snapshot = true
-  
+
   backup_retention_period = 1
   backup_window           = "03:00-04:00"
   maintenance_window      = "Sun:05:00-Sun:06:00"
-  
+
   deletion_protection = false # Usually true for prod, but false for easier dev/test cleanup
 
   tags = merge(var.common_tags, {
