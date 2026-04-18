@@ -76,14 +76,25 @@ module "s3" {
   common_tags  = local.common_tags
 }
 
+module "secrets" {
+  source = "../../modules/secrets"
+
+  project_name = var.project_name
+  environment  = var.environment
+  db_username  = "chatdbuser"
+  db_password  = var.db_password
+  db_name      = "chat_db"
+  common_tags  = local.common_tags
+}
+
 module "rds" {
   source = "../../modules/rds"
 
-  project_name     = var.project_name
-  environment      = var.environment
-  vpc_id           = module.vpc.vpc_id
+  project_name      = var.project_name
+  environment       = var.environment
+  vpc_id            = module.vpc.vpc_id
   public_subnet_ids = module.vpc.public_subnet_ids
-  ec2_sg_id        = module.autoscaling.ec2_sg_id
-  db_password      = var.db_password
-  common_tags      = local.common_tags
+  ec2_sg_id         = module.autoscaling.ec2_sg_id
+  db_password       = module.secrets.db_password
+  common_tags       = local.common_tags
 }
