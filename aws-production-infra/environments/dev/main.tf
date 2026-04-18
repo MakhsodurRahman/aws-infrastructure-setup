@@ -58,13 +58,14 @@ module "autoscaling" {
   project_name          = var.project_name
   environment           = var.environment
   vpc_id                = module.vpc.vpc_id
-  private_subnet_ids    = module.vpc.private_subnet_ids
+  private_subnet_ids    = module.vpc.public_subnet_ids # Switched to public for direct Redis access
   target_group_arn      = module.alb.target_group_arn
   alb_security_group_id = module.alb.alb_security_group_id
   instance_type        = var.instance_type
   min_size             = 1
   max_size             = 3
   desired_capacity     = 1
+  redis_secret_arn     = module.secrets.redis_secret_arn
   common_tags          = local.common_tags
 }
 

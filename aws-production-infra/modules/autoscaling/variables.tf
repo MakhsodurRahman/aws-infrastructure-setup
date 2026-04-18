@@ -42,6 +42,12 @@ variable "desired_capacity" {
   default     = 2
 }
 
+variable "redis_secret_arn" {
+  description = "The ARN of the Redis password secret"
+  type        = string
+  default     = ""
+}
+
 variable "project_name" {
   description = "Project name"
   type        = string

@@ -1,11 +1,11 @@
-output "secret_arn" {
-  description = "The ARN of the secret"
+output "db_secret_arn" {
+  description = "The ARN of the DB secret"
   value       = aws_secretsmanager_secret.db_credentials.arn
 }
 
-output "secret_name" {
-  description = "The name of the secret"
-  value       = aws_secretsmanager_secret.db_credentials.name
+output "redis_secret_arn" {
+  description = "The ARN of the Redis secret"
+  value       = aws_secretsmanager_secret.redis_password.arn
 }
 
 output "db_password" {

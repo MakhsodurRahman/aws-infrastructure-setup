@@ -34,6 +34,22 @@ resource "aws_iam_role" "ec2_role" {
   tags = var.common_tags
 }
 
+resource "aws_iam_role_policy" "secrets_access" {
+  name = "${var.project_name}-${var.environment}-secrets-access"
+  role = aws_iam_role.ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = "secretsmanager:GetSecretValue"
+        Effect   = "Allow"
+        Resource = var.redis_secret_arn
+      }
+    ]
+  })
+}
+
 # IAM Instance Profile
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "${var.project_name}-${var.environment}-ec2-profile"
@@ -60,6 +76,14 @@ resource "aws_security_group" "ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Public Redis access for testing"
+  }
+
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-${var.environment}-ec2-sg"
   })
@@ -72,7 +96,7 @@ resource "aws_launch_template" "main" {
   instance_type = var.instance_type
 
   network_interfaces {
-    associate_public_ip_address = false
+    associate_public_ip_address = true
     security_groups             = [aws_security_group.ec2_sg.id]
   }
 
@@ -83,10 +107,28 @@ resource "aws_launch_template" "main" {
   user_data = base64encode(<<-EOF
               #!/bin/bash
               apt-get update -y
-              apt-get install -y apache2
+              apt-get install -y apache2 redis-server jq unzip
+              
+              # Install AWS CLI
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              ./aws/install
+
+              # Get Redis password from Secrets Manager
+              REDIS_PASSWORD=$(aws secretsmanager get-secret-value --secret-id ${var.redis_secret_arn} --region us-east-1 --query SecretString --output text)
+
+              # Configure Redis
+              sed -i 's/^bind 127.0.0.1 ::1/bind 0.0.0.0/' /etc/redis/redis.conf
+              sed -i 's/^protected-mode yes/protected-mode no/' /etc/redis/redis.conf
+              echo "requirepass $REDIS_PASSWORD" >> /etc/redis/redis.conf
+
+              systemctl restart redis-server
+              systemctl enable redis-server
+
+              # Apache setup
               systemctl start apache2
               systemctl enable apache2
-              echo "<h1>Hello from ${var.environment} Ubuntu infrastructure!</h1>" > /var/www/html/index.html
+              echo "<h1>Hello from ${var.environment} Ubuntu infrastructure!</h1><p>Redis is installed and configured.</p>" > /var/www/html/index.html
               mkdir -p /var/www/html/health
               echo "OK" > /var/www/html/health/index.html
               EOF
@@ -103,9 +145,10 @@ resource "aws_launch_template" "main" {
 resource "aws_autoscaling_group" "main" {
   name                = "${var.project_name}-${var.environment}-asg"
   vpc_zone_identifier = var.private_subnet_ids
-  target_group_arns   = [var.target_group_arn]
-  health_check_type   = "ELB"
-  min_size            = var.min_size
+  target_group_arns         = [var.target_group_arn]
+  health_check_type         = "ELB"
+  health_check_grace_period  = 300
+  min_size                  = var.min_size
   max_size            = var.max_size
   desired_capacity    = var.desired_capacity
 
