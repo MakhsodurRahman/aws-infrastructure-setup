@@ -39,7 +39,7 @@ module "vpc" {
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
   availability_zones   = var.availability_zones
-  common_tags         = local.common_tags
+  common_tags          = local.common_tags
 }
 
 module "alb" {
@@ -52,6 +52,10 @@ module "alb" {
   common_tags       = local.common_tags
 }
 
+module "docker" {
+  source = "../../modules/docker"
+}
+
 module "autoscaling" {
   source = "../../modules/autoscaling"
 
@@ -61,12 +65,13 @@ module "autoscaling" {
   private_subnet_ids    = module.vpc.public_subnet_ids # Switched to public for direct Redis access
   target_group_arn      = module.alb.target_group_arn
   alb_security_group_id = module.alb.alb_security_group_id
-  instance_type        = var.instance_type
-  min_size             = 1
-  max_size             = 3
-  desired_capacity     = 1
-  redis_secret_arn     = module.secrets.redis_secret_arn
-  common_tags          = local.common_tags
+  instance_type         = var.instance_type
+  min_size              = 1
+  max_size              = 3
+  desired_capacity      = 1
+  redis_secret_arn      = module.secrets.redis_secret_arn
+  docker_install_script = module.docker.install_script
+  common_tags           = local.common_tags
 }
 
 module "s3" {
