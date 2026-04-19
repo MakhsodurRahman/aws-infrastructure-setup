@@ -67,6 +67,31 @@ resource "aws_security_group" "ec2_sg" {
     to_port         = 80
     protocol        = "tcp"
     security_groups = [var.alb_security_group_id]
+    description     = "Allow HTTP from ALB"
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow SSH from anywhere"
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTP from anywhere"
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTPS from anywhere"
   }
 
   egress {
@@ -95,6 +120,8 @@ resource "aws_launch_template" "main" {
   image_id      = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
 
+  key_name      = aws_key_pair.generated_key.key_name
+
   network_interfaces {
     associate_public_ip_address = true
     security_groups             = [aws_security_group.ec2_sg.id]
@@ -107,10 +134,13 @@ resource "aws_launch_template" "main" {
   user_data = base64encode(<<-EOF
               #!/bin/bash
               apt-get update -y
-              apt-get install -y apache2 redis-server jq unzip
+              apt-get install -y redis-server jq unzip
               
               # Docker Setup
               ${var.docker_install_script}
+
+              # Nginx Setup
+              ${var.nginx_install_script}
 
               # Install AWS CLI
               curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -127,13 +157,6 @@ resource "aws_launch_template" "main" {
 
               systemctl restart redis-server
               systemctl enable redis-server
-
-              # Apache setup
-              systemctl start apache2
-              systemctl enable apache2
-              echo "<h1>Hello from ${var.environment} Ubuntu infrastructure!</h1><p>Redis is installed and configured.</p>" > /var/www/html/index.html
-              mkdir -p /var/www/html/health
-              echo "OK" > /var/www/html/health/index.html
               EOF
   )
 
@@ -143,6 +166,26 @@ resource "aws_launch_template" "main" {
 
   tags = var.common_tags
 }
+
+# Generate an RSA key pair
+resource "tls_private_key" "rsa_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Create an AWS key pair
+resource "aws_key_pair" "generated_key" {
+  key_name   = "${var.project_name}-${var.environment}-key"
+  public_key = tls_private_key.rsa_key.public_key_openssh
+}
+
+# Save the private key to a local file
+resource "local_sensitive_file" "private_key" {
+  content         = tls_private_key.rsa_key.private_key_pem
+  filename        = "$${path.cwd}/$${var.project_name}-$${var.environment}-private-key.pem"
+  file_permission = "0400"
+}
+
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "main" {

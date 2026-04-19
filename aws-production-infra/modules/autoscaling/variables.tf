@@ -68,3 +68,9 @@ variable "docker_install_script" {
   type        = string
   default     = ""
 }
+
+variable "nginx_install_script" {
+  description = "The script to install Nginx"
+  type        = string
+  default     = ""
+}

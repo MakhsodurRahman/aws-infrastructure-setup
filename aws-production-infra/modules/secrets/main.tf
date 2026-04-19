@@ -1,6 +1,7 @@
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name        = "${var.project_name}-${var.environment}-db-credentials"
-  description = "RDS database credentials for ${var.project_name}"
+  name_prefix             = "${var.project_name}-${var.environment}-db-credentials-"
+  description             = "RDS database credentials for ${var.project_name}"
+  recovery_window_in_days = 0
 
   tags = merge(
     var.common_tags,
@@ -20,8 +21,9 @@ resource "aws_secretsmanager_secret_version" "db_credentials_version" {
 }
 
 resource "aws_secretsmanager_secret" "redis_password" {
-  name        = "${var.project_name}-${var.environment}-redis-password"
-  description = "Redis password for ${var.project_name}"
+  name_prefix             = "${var.project_name}-${var.environment}-redis-password-"
+  description             = "Redis password for ${var.project_name}"
+  recovery_window_in_days = 0
 
   tags = merge(
     var.common_tags,

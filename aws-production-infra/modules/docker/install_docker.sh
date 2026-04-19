@@ -14,8 +14,11 @@ echo \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
 
-# Install Docker packages
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+# Install Docker packages (Pinned Version)
+DOCKER_VERSION="27.4.0"
+VERSION_STRING="5:${DOCKER_VERSION}-1~ubuntu.22.04~jammy"
+
+apt-get install -y docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Add ubuntu user to docker group
 usermod -aG docker ubuntu

@@ -56,6 +56,10 @@ module "docker" {
   source = "../../modules/docker"
 }
 
+module "nginx" {
+  source = "../../modules/nginx"
+}
+
 module "autoscaling" {
   source = "../../modules/autoscaling"
 
@@ -71,6 +75,7 @@ module "autoscaling" {
   desired_capacity      = 1
   redis_secret_arn      = module.secrets.redis_secret_arn
   docker_install_script = module.docker.install_script
+  nginx_install_script  = module.nginx.install_script
   common_tags           = local.common_tags
 }
 
